@@ -86,6 +86,13 @@ for (columnName, columnData) in df.iteritems():
     # plotting, and a scatterplot could tell me more.
 
 # Let's make a scatterplot of odo vs price to see if these values need more cleaning:
+
 PriceVOdo = df.plot.scatter(x='Price',
                             y='Odo',
-                            colormap='viridis')
+                            c='darkblue')
+import matplotlib.pyplot as plt # apparently the scatter is producing subplot figures.
+plt.show() # Taking on some tech debt because I'm writing a script when I'd normally be in Jupyter
+
+# Oh yeah.  Odo ranges from 0-1e7 in what looks continuous and price is dominated by an outlier at 1e144.
+
+# TODO: Use low-pass filter to remove 1e144 outlier for price
