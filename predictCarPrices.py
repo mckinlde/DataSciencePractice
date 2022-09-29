@@ -62,11 +62,52 @@ print("^ enumerate categorical variables ^")
 # I have a DateTime field, so we'll convert that to numeric
 import datetime as dt
 df['Added'] = pd.to_datetime(df['Added'])
-df['Added']=df['Added'].map(dt.datetime.toordinal)
+df['Added'] = df['Added'].map(dt.datetime.toordinal)
+
+# I also have a string price field to convert to numeric
+df["Price"] = df["Price"].replace("[$,]", "", regex=True).astype(int)
 
 # Outstanding, now we've got linear values, labeled categories, and numeric dates
 
-# TODO: Scale, normalize, check for NaN/infinite
+
+# TODO: some light reading on feature scaling and an informed decision on how to scale features
+# TODO: boilerplate code has been removed as multi-line comment
+"""
+#Scale the numerical data
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+norm = StandardScaler()
+df['Price'] = np.log(df['Price'])
+df['Odo'] = norm.fit_transform(np.array(df['Odo']).reshape(-1,1))
+df['Year'] = norm.fit_transform(np.array(df['Year']).reshape(-1,1))
+
+# Scaling target variable
+
+q1,q3 = (df['Price'].quantile([0.25,0.75]))
+o1 = q1-1.5*(q3-q1)
+o2 = q3+1.5*(q3-q1)
+df = df[(df.price >= o1) & (df.price <= o2)]
+
+df['Added'] = norm.fit_transform(np.array(df['Added']).reshape(-1,1))
+df['Title'] = norm.fit_transform(np.array(df['Title']).reshape(-1,1))
+df['Make'] = norm.fit_transform(np.array(df['Make']).reshape(-1,1))
+df['Model'] = norm.fit_transform(np.array(df['Model']).reshape(-1,1))
+df['MakeKey'] = norm.fit_transform(np.array(df['MakeKey']).reshape(-1,1))
+df['ModelKey'] = norm.fit_transform(np.array(df['ModelKey']).reshape(-1,1))
+df['URL'] = norm.fit_transform(np.array(df['URL']).reshape(-1,1))
+df['TitleKey'] = norm.fit_transform(np.array(df['TitleKey']).reshape(-1,1))
+df['Area'] = norm.fit_transform(np.array(df['Area']).reshape(-1,1))
+df['conditionAttr'] = norm.fit_transform(np.array(df['conditionAttr']).reshape(-1,1))
+df['cylinders'] = norm.fit_transform(np.array(df['cylinders']).reshape(-1,1))
+df['drive'] = norm.fit_transform(np.array(df['drive']).reshape(-1,1))
+df['fuel'] = norm.fit_transform(np.array(df['fuel']).reshape(-1,1))
+df['paint_color'] = norm.fit_transform(np.array(df['paint_color']).reshape(-1,1))
+df['size'] = norm.fit_transform(np.array(df['size']).reshape(-1,1))
+df['title_status'] = norm.fit_transform(np.array(df['title_status']).reshape(-1,1))
+df['transmission'] = norm.fit_transform(np.array(df['transmission']).reshape(-1,1))
+df['type'] = norm.fit_transform(np.array(df['type']).reshape(-1,1))
+df['body'] = norm.fit_transform(np.array(df['body']).reshape(-1,1))
+"""
 
 # which means our next step is to split into a train and test set
 from sklearn.model_selection import train_test_split
@@ -91,6 +132,8 @@ def split(df, n):
 # I want to predict price, so we'll move that into the last column
 new_cols = [col for col in df.columns if col != 'Price'] + ['Price']
 df = df[new_cols]
+
+pd.set_option('display.max_columns', None)
 print(df.head())
 print("^ price@end ^")
 
@@ -126,11 +169,14 @@ performance = pd.DataFrame(index=['MSLE', 'Root MSLE', 'R2 Score', 'Accuracy(%)'
 
 
 # now it's time to try some models!  we'll start with linear regression
+# TODO: Nothing works and I don't know why
+# TODO: Problematic code removed as multi-line comment
+"""
 from sklearn.linear_model import LinearRegression #import
 LR = LinearRegression() #instantiate
 LR.fit(X_train,y_train) #fit
 y_pred = LR.predict(X_test) #predict
-
+"""
 # woo! how'd it do?
 linreg_results = performanceEval(y_test,y_pred)
 print('Coefficients: \n', LR.coef_)
