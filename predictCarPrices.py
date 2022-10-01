@@ -65,14 +65,28 @@ df['Added'] = pd.to_datetime(df['Added'])
 df['Added'] = df['Added'].map(dt.datetime.toordinal)
 
 # I also have a string price field to convert to numeric
-df["Price"] = df["Price"].replace("[$,]", "", regex=True).astype(int)
+df["Price"] = df["Price"].replace("[$,]", "", regex=True).astype(float)
 
 # Outstanding, now we've got linear values, labeled categories, and numeric dates
+
+# In visualizeCarPrices.py we discovered outliers, most notably prices over $1mil and Odos over 1mil miles.
+# Scatterplots suggest good low-pass filter cutoffs are $100k and 4mil miles, so let's add those and
+# attempt a regression
+df = df[df['Price'] < 100000]
+df = df[df['Odo'] < 4000000]
+
+# ValueError: Input contains NaN, infinity or a value too large for dtype('float64').
+# Let's drop NaN values and see how many rows remain
+print(df.shape)
+df = df.dropna()
+print('dropna')
+print(df.shape)
+# Looks like we lost 2 rows.  Nice.
 
 
 # TODO: some light reading on feature scaling and an informed decision on how to scale features
 # TODO: boilerplate code has been removed as multi-line comment
-"""
+
 #Scale the numerical data
 import numpy as np
 from sklearn.preprocessing import StandardScaler
@@ -86,7 +100,7 @@ df['Year'] = norm.fit_transform(np.array(df['Year']).reshape(-1,1))
 q1,q3 = (df['Price'].quantile([0.25,0.75]))
 o1 = q1-1.5*(q3-q1)
 o2 = q3+1.5*(q3-q1)
-df = df[(df.price >= o1) & (df.price <= o2)]
+df = df[(df.Price >= o1) & (df.Price <= o2)]
 
 df['Added'] = norm.fit_transform(np.array(df['Added']).reshape(-1,1))
 df['Title'] = norm.fit_transform(np.array(df['Title']).reshape(-1,1))
@@ -106,8 +120,8 @@ df['size'] = norm.fit_transform(np.array(df['size']).reshape(-1,1))
 df['title_status'] = norm.fit_transform(np.array(df['title_status']).reshape(-1,1))
 df['transmission'] = norm.fit_transform(np.array(df['transmission']).reshape(-1,1))
 df['type'] = norm.fit_transform(np.array(df['type']).reshape(-1,1))
-df['body'] = norm.fit_transform(np.array(df['body']).reshape(-1,1))
-"""
+df['Body'] = norm.fit_transform(np.array(df['Body']).reshape(-1,1))
+
 
 # which means our next step is to split into a train and test set
 from sklearn.model_selection import train_test_split
@@ -148,7 +162,8 @@ print("^ split train test ^")
 
 # and before we start running models we want a way to evaluate their performance
 from sklearn.metrics import mean_squared_log_error, r2_score, mean_squared_error
-# we're testing multiple models, so let's define a function that calculates RMSE, root RMSE, MSLE, rootMSLE, R^2, and %accuracy
+# we're testing multiple models, so let's define a function that calculates
+# RMSE, root RMSE, MSLE, rootMSLE, R^2, and %accuracy
 def performanceEval(y_test, y_pred):
     """
     :param y_test: itself
@@ -157,32 +172,49 @@ def performanceEval(y_test, y_pred):
     """
     r = []
     r.append(mean_squared_error(y_test, y_pred))
-    r.append(pd.sqrt(r[0]))
+    r.append(np.sqrt(r[0]))
     r.append(mean_squared_log_error(y_test, y_pred))
-    r.append(pd.sqrt(r[2]))
+    r.append(np.sqrt(r[2]))
     r.append(r2_score(y_test, y_pred))
     r.append(round(r2_score(y_test, y_pred) * 100, 4))
     return r
 
 # and DataFrame that stores the results of performanceEval()
-performance = pd.DataFrame(index=['MSLE', 'Root MSLE', 'R2 Score', 'Accuracy(%)'])
+performance = pd.DataFrame(index=['RMSE', 'Root RMSE', 'MSLE', 'Root MSLE', 'R2 Score', 'Accuracy(%)'])
 
 
 # now it's time to try some models!  we'll start with linear regression
-# TODO: Nothing works and I don't know why
-# TODO: Problematic code removed as multi-line comment
-"""
+
+
 from sklearn.linear_model import LinearRegression #import
 LR = LinearRegression() #instantiate
 LR.fit(X_train,y_train) #fit
 y_pred = LR.predict(X_test) #predict
-"""
+
 # woo! how'd it do?
+
 linreg_results = performanceEval(y_test,y_pred)
 print('Coefficients: \n', LR.coef_)
+# TODO: Make printing performance a function
 print("RMSE : {}".format(linreg_results[0]))
 print("Root RMSE : {}".format(linreg_results[1]))
 print("MSLE : {}".format(linreg_results[2]))
 print("Root MSLE : {}".format(linreg_results[3]))
 print("R2 Score : {} or {}%".format(linreg_results[4],linreg_results[5]))
 performance['Linear Regression'] = linreg_results
+
+## We have a result!
+'''
+Coefficients: 
+ [ 2.05871956e-01 -3.01323061e-02 -2.26261256e-02  4.52538043e-02
+ -5.48770805e-02  9.77601936e-03 -2.39989624e-01 -5.47503137e-03
+  5.91538707e+01 -1.91652772e-01  2.18767832e-02 -1.01814665e-01
+  1.17715716e-01 -6.97043327e-02 -2.15966626e-01 -2.10940141e-02
+  2.28243943e-02 -1.00244749e-02  8.07730953e-02  0.00000000e+00
+ -5.91515490e+01]
+RMSE : 0.6080458237483541
+Root RMSE : 0.7797729308897264
+MSLE : 0.006331384758064256
+Root MSLE : 0.07956999910810768
+R2 Score : 0.276968976363402 or 27.6969%
+'''

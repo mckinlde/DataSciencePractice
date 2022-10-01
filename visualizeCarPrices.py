@@ -86,13 +86,44 @@ for (columnName, columnData) in df.iteritems():
     # plotting, and a scatterplot could tell me more.
 
 # Let's make a scatterplot of odo vs price to see if these values need more cleaning:
-
+'''
 PriceVOdo = df.plot.scatter(x='Price',
                             y='Odo',
                             c='darkblue')
 import matplotlib.pyplot as plt # apparently the scatter is producing subplot figures.
 plt.show() # Taking on some tech debt because I'm writing a script when I'd normally be in Jupyter
-
+'''
 # Oh yeah.  Odo ranges from 0-1e7 in what looks continuous and price is dominated by an outlier at 1e144.
 
-# TODO: Use low-pass filter to remove 1e144 outlier for price
+# Let's examine outliers in price >1e31.
+print('Outlier in Price:')
+print(df[df.Price > 10000000000000000000000000000000])
+# looks like there are 5 of them.  What about a more reasonable 1e6?
+print('Prices over 1,000,000:')
+print(df[df.Price > 1000000])
+# 241 rows.  Guess craigslist has some high rollers.  What about 1e5?
+# $100k captures a pricepoint for lots of new cars.  Maybe our dataset inclues dealership listings?
+print('Prices over 100,000:')
+print(df[df.Price > 100000])
+# Now we're at >4000 rows.  It looks like there could be typos (a value of 530,000 where a user may have meant 53,000)
+
+# I wonder what our 0.996million listings under $100k look like as a scatter?
+df = df[df['Price'] < 100000]
+PriceVOdo = df.plot.scatter(x='Price',
+                            y='Odo',
+                            c='darkblue')
+import matplotlib.pyplot as plt # apparently the scatter is producing subplot figures.
+plt.show() # Taking on some tech debt because I'm writing a script when I'd normally be in Jupyter
+# With a $100k low-pass, there's a much more reasonable plot.
+# Price appears to roughly trend down as Odo climbs, and there's a disproportionate number of listings
+# at 1e7 odo miles.  That said, most appear below 0.4e7.  What happens if we low pass Odo?
+df = df[df['Odo'] < 4000000]
+PriceVOdo = df.plot.scatter(x='Price',
+                            y='Odo',
+                            c='darkblue')
+import matplotlib.pyplot as plt # apparently the scatter is producing subplot figures.
+plt.show() # Taking on some tech debt because I'm writing a script when I'd normally be in Jupyter
+# Now we have a very reasonable looking scatter.  There is a strong Odo go up, Price go down correlation,
+# and a dense representation of data below the diagonal.
+
+# Let's add these filters to predictCarPrices and see if we can get a functioning linear model.
