@@ -151,8 +151,8 @@ pd.set_option('display.max_columns', None)
 print(df.head())
 print("^ price@end ^")
 
-# and let's run our first pass ambitiously: 90% training
-X_train, X_test, y_train, y_test = split(df, 0.9)
+# and let's run our first pass ambitiously: 80% training
+X_train, X_test, y_train, y_test = split(df, 0.8)
 
 print(X_train.head())
 print(X_test.head())
@@ -203,6 +203,16 @@ print("Root MSLE : {}".format(linreg_results[3]))
 print("R2 Score : {} or {}%".format(linreg_results[4],linreg_results[5]))
 performance['Linear Regression'] = linreg_results
 
+# plotting model performance
+import matplotlib
+from matplotlib import pyplot as plt
+df_check = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
+df_check = df_check.sample(20)
+df_check.plot(kind='bar',figsize = (10,6))
+plt.grid(which ='major', linestyle ='-', linewidth ='0.1', color ='Green')
+plt.title('Performance of Linear Regression')
+plt.show()
+
 ## We have a result!
 '''
 Coefficients: 
@@ -218,3 +228,91 @@ MSLE : 0.006331384758064256
 Root MSLE : 0.07956999910810768
 R2 Score : 0.276968976363402 or 27.6969%
 '''
+
+# Plot those feature importances
+coef = pd.Series(LR.coef_, index = X_train.columns)
+imp_coef = coef.sort_values()
+matplotlib.rcParams['figure.figsize'] = (6.0, 6.0)
+imp_coef.plot(kind = "barh")
+plt.title("Feature Importance Using Linear Regression Model")
+plt.show()
+
+# It seems that the URL is dominating predictions, where intuition suggests that while the post itself is the strongest
+# predictor of price, it is not something we can generalize across listings.  Let's remove that column and try again
+
+# dropping column
+df = df.drop('URL',  axis=1)
+# splitting to train and test
+X_train, X_test, y_train, y_test = split(df, 0.8)
+# training model
+LR = LinearRegression() #instantiate
+LR.fit(X_train,y_train) #fit
+y_pred = LR.predict(X_test) #predict
+# evaluating results
+linreg_results = performanceEval(y_test,y_pred)
+print('Coefficients: \n', LR.coef_)
+# TODO: Make printing performance a function
+print("RMSE : {}".format(linreg_results[0]))
+print("Root RMSE : {}".format(linreg_results[1]))
+print("MSLE : {}".format(linreg_results[2]))
+print("Root MSLE : {}".format(linreg_results[3]))
+print("R2 Score : {} or {}%".format(linreg_results[4],linreg_results[5]))
+performance['Linear Regression'] = linreg_results
+# plotting model performance
+df_check = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
+df_check = df_check.sample(20)
+df_check.plot(kind='bar',figsize = (10,6))
+plt.grid(which ='major', linestyle ='-', linewidth ='0.1', color ='Green')
+plt.title('Performance of Linear Regression')
+plt.show()
+# plotting feature importance
+coef = pd.Series(LR.coef_, index = X_train.columns)
+imp_coef = coef.sort_values()
+matplotlib.rcParams['figure.figsize'] = (6.0, 6.0)
+imp_coef.plot(kind = "barh")
+plt.title("Feature Importance Using Linear Regression Model")
+plt.show()
+
+# There we go; what we see now is a roughly 60-40 split, where most variables are negative predictors
+# Interestingly, the Title is not the most important predictor.   I suspect a similar effect to the URL,.
+
+
+# dropping column
+df = df.drop('Title',  axis=1)
+# splitting to train and test
+X_train, X_test, y_train, y_test = split(df, 0.9)
+# training model
+LR = LinearRegression() #instantiate
+LR.fit(X_train,y_train) #fit
+y_pred = LR.predict(X_test) #predict
+# evaluating results
+linreg_results = performanceEval(y_test,y_pred)
+print('Coefficients: \n', LR.coef_)
+# TODO: Make printing performance a function
+print("RMSE : {}".format(linreg_results[0]))
+print("Root RMSE : {}".format(linreg_results[1]))
+print("MSLE : {}".format(linreg_results[2]))
+print("Root MSLE : {}".format(linreg_results[3]))
+print("R2 Score : {} or {}%".format(linreg_results[4],linreg_results[5]))
+performance['Linear Regression'] = linreg_results
+# plotting model performance
+df_check = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
+df_check = df_check.sample(20)
+df_check.plot(kind='bar',figsize = (10,6))
+plt.grid(which ='major', linestyle ='-', linewidth ='0.1', color ='Green')
+plt.title('Performance of Linear Regression')
+plt.show()
+# plotting feature importance
+coef = pd.Series(LR.coef_, index = X_train.columns)
+imp_coef = coef.sort_values()
+matplotlib.rcParams['figure.figsize'] = (6.0, 6.0)
+imp_coef.plot(kind = "barh")
+plt.title("Feature Importance Using Linear Regression Model")
+plt.show()
+
+# Now Year has emerged as the strongest predictor, with Odo as the most negative.  A higher year is a more recent car,
+# and a higher odo is an older (or more driven) car, so we're matchinng intuition.
+
+# That said, our R2 is only 24%, and other metrics of performance are showing that a linear model just isn't cutting it.
+
+# Let's try some other models on this dataframe (without Title or URL) and see if we get better results:
