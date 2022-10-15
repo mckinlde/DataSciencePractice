@@ -20,15 +20,11 @@ vfunc = np.vectorize(myfunc, doc='Vectorized \'myfunc\'')
 print(vfunc.__doc__)
 
 # using excluded
-vfunc2 = np.vectorize(myfunc, excluded=['a'])
-print(vfunc2([1,2,3,4], 2))
-
-# updating docs
-print(vfunc2.__doc__)
-vfunc2 = np.vectorize(myfunc, doc='Vectorized \'myfunc\' with a excluded')
-print(vfunc2.__doc__)
-
-
+'''
+The excluded argument can be used to prevent vectorizing over certain arguments. 
+This can be useful for array-like arguments of a fixed length such as 
+the coefficients for a polynomial as in polyval:
+'''
 def mypolyval(p, x):
     "expand polynomial from highest term to constant"
     _p = list(p)
@@ -43,4 +39,8 @@ vpolyvalex = np.vectorize(mypolyval, excluded=['p'])
 print('vpolyex')
 print(vpolyvalex(p=[1,2,3], x=[0,1]))
 print('vpoly')
-print(vpolyval(p=[1, 2, 3], x=[0, 1]))
+'''
+Without excluding the argument p, voplyval throws 
+TypeError: 'numpy.int64' object is not iterable
+'''
+#print(vpolyval(p=[1,2,3], x=[0,1]))
