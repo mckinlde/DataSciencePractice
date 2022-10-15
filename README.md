@@ -6,3 +6,5 @@ Because I don't want to pay for storage, data will be missing.  If it's publicly
 if it's data I scraped I'll show the format in comments.
 
 (spoiler alert: Anyone can hotdog/not hotdog the iris dataset.  I'll be ETL-ing my own dataset because I want the big bucks.)
+
+(Eating my own words: I have added a bunch of snippets from a medium post to do interview prep)
