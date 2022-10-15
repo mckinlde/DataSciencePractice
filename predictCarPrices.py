@@ -39,6 +39,7 @@ Columns:
 import pandas as pd
 
 df = pd.read_csv("/Users/douglasmckinley/Downloads/output.csv")
+pd.set_option('display.max_columns', None)
 print(df.head())
 print("^ read_csv ^")
 
@@ -147,7 +148,6 @@ def split(df, n):
 new_cols = [col for col in df.columns if col != 'Price'] + ['Price']
 df = df[new_cols]
 
-pd.set_option('display.max_columns', None)
 print(df.head())
 print("^ price@end ^")
 
