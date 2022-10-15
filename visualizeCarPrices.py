@@ -135,9 +135,13 @@ plt.show() # Taking on some tech debt because I'm writing a script when I'd norm
 # TypeError: 'formatter' must be an instance of matplotlib.ticker.Formatter, not a str
 # Looks like the comment 'A StrMethodFormatter is used automatically' is inaccurate
 
+# Let's try a funcformatter from:
+# https://stackoverflow.com/questions/25119193/matplotlib-pyplot-axes-formatter
+
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator
+from matplotlib.ticker import FuncFormatter
 import numpy as np
 
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
@@ -156,8 +160,11 @@ surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm,
 # Customize the z axis.
 ax.set_zlim(-1.01, 1.01)
 ax.zaxis.set_major_locator(LinearLocator(10))
-# A StrMethodFormatter is used automatically
-ax.zaxis.set_major_formatter('{x:.02f}')
+
+def y_fmt(x, y):
+    return '{x:0.2f}'
+
+ax.zaxis.set_major_formatter(FuncFormatter(y_fmt))
 
 # Add a color bar which maps values to colors.
 fig.colorbar(surf, shrink=0.5, aspect=5)
