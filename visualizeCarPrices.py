@@ -138,6 +138,11 @@ plt.show() # Taking on some tech debt because I'm writing a script when I'd norm
 # Let's try a funcformatter from:
 # https://stackoverflow.com/questions/25119193/matplotlib-pyplot-axes-formatter
 
+# Yikes, I'm getting a nonmanual exit code 137.  Let's run again with an eye on my RAM
+# Yup.  Activity Monitor is confirming a huge RAM spike trying to plot all 4102 Rows.
+
+# Maybe fixing this is as simple as adding sparse to our meshgrid
+
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator
@@ -147,16 +152,17 @@ import numpy as np
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
 # Make data.
-X = np.arange(-5, 5, 0.25)
-Y = np.arange(-5, 5, 0.25)
-X, Y = np.meshgrid(X, Y)
-R = np.sqrt(X**2 + Y**2)
-Z = np.sin(R)
+X = df['Year']
+Y = df['Odo']
+X, Y = np.meshgrid(X, Y, sparse=True)
+Z = df['Price']
 
 # Plot the surface.
 surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm,
                        linewidth=0, antialiased=False)
 
+# Now that I'm using own data, I think I can remove some of the synthetic data cleaning
+'''
 # Customize the z axis.
 ax.set_zlim(-1.01, 1.01)
 ax.zaxis.set_major_locator(LinearLocator(10))
@@ -165,7 +171,7 @@ def y_fmt(x, y):
     return '{x:0.2f}'
 
 ax.zaxis.set_major_formatter(FuncFormatter(y_fmt))
-
+'''
 # Add a color bar which maps values to colors.
 fig.colorbar(surf, shrink=0.5, aspect=5)
 
