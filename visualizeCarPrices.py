@@ -128,7 +128,20 @@ plt.show() # Taking on some tech debt because I'm writing a script when I'd norm
 
 # Let's add these filters to predictCarPrices and see if we can get a functioning linear model.
 
-# We're back after a break--I want to make a surfaceplot because they look cool.  I'll start with copy/paste from:
+# We're back after a break--I want to make a surfaceplot because they look cool.
+# After much frusturation, we're settling for a 3d scatter so I can take a break.
+
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+X = df['Year']
+Y = df['Odo']
+Z = df['Price']
+print(X.shape, Z.shape, Y.shape)
+threeD = ax.scatter(X, Y, Z)
+plt.show()
+#
+#
+# I'll start with copy/paste from:
 # https://matplotlib.org/stable/gallery/mplot3d/surface3d.html
 
 # On initial run, we throw
@@ -141,7 +154,8 @@ plt.show() # Taking on some tech debt because I'm writing a script when I'd norm
 # Yikes, I'm getting a nonmanual exit code 137.  Let's run again with an eye on my RAM
 # Yup.  Activity Monitor is confirming a huge RAM spike trying to plot all 4102 Rows.
 
-# Maybe fixing this is as simple as adding sparse to our meshgrid
+# Maybe fixing this is as simple as adding sparse to our meshgrid -- plot twist, using trisurf:
+# ValueError: x and y must be equal-length 1-D arrays
 
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -149,17 +163,14 @@ from matplotlib.ticker import LinearLocator
 from matplotlib.ticker import FuncFormatter
 import numpy as np
 
-fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
 # Make data.
-X = df['Year']
-Y = df['Odo']
-X, Y = np.meshgrid(X, Y, sparse=True)
-Z = df['Price']
+
 
 # Plot the surface.
-surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm,
-                       linewidth=0, antialiased=False)
+# ValueError: Argument Z must be 2-dimensional., Stackoverflow says use trisurf:
+# https://stackoverflow.com/questions/51574861/plotting-3d-surface-using-python-raise-valueerrorargument-z-must-be-2-dimensi
+#surf = ax.plot_trisurf(X, Y, Z, cmap=cm.coolwarm,linewidth=0, antialiased=False)
 
 # Now that I'm using own data, I think I can remove some of the synthetic data cleaning
 '''
@@ -173,6 +184,4 @@ def y_fmt(x, y):
 ax.zaxis.set_major_formatter(FuncFormatter(y_fmt))
 '''
 # Add a color bar which maps values to colors.
-fig.colorbar(surf, shrink=0.5, aspect=5)
-
-plt.show()
+#fig.colorbar(threeD, shrink=0.5, aspect=5)
